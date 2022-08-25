@@ -1,28 +1,14 @@
 # INFORMATION GAIN
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import numpy as np
+import pandas as pd
 import math
 from collections import Counter
-
-# Os arquivos de dados de entrada estão disponíveis no diretório "../input/".
-# Por exemplo, executar isso (clicando em executar ou pressionando Shift+Enter) listará os arquivos no diretório de entrada
-
-
-data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/balanceados/drebin_215_permissions.csv')
-#print(data.head())
-#print(data.isnull().sum()) #Selecionar 0s
-
-#A ideia por trás da construção de árvores é encontrar a melhor característica para dividir que gere o maior ganho de informação ou forneça a menor
-#incerteza nas folhas seguintes
-
-#Entropia
-#Ainda encontraremos o ganho de informação, usando entropias ponderadas e escolheremos o atributo que proporcionou o ganho máximo de informação.
-print("Há {} features no dataset".format(len(data.columns)))
+from sklearn.model_selection import KFold
 
 #Função para cálculo da Entropia
-def entropy(labels):
+def entropia(labels):
     entropy=0
-    label_counts = Counter(labels)      #Um Counter é um dict e pode receber um objeto iterável ou um mapa como argumento para realizar a contagem de seus elementos.
+    label_counts = Counter(labels)      # Um Counter é um dict e pode receber um objeto iterável ou um mapa como argumento para realizar a contagem de seus elementos
     for label in label_counts:
         prob_of_label = label_counts[label] / len(labels)
         entropy -= prob_of_label * math.log2(prob_of_label)
@@ -30,32 +16,49 @@ def entropy(labels):
 
 #Função para cálculo do Ganho
 def information_gain(starting_labels, split_labels):
-    info_gain = entropy(starting_labels)
+    info_gain = entropia(starting_labels)
     for branched_subset in split_labels:        #subconjunto
-        info_gain -= len(branched_subset) * entropy(branched_subset) / len(starting_labels)
+        info_gain -= len(branched_subset) * entropia(branched_subset) / len(starting_labels)
     return info_gain
 
-def split(dataset, column):
-    split_data = []
+def criar_subconjunto(dataset, column):
+    subconjunto = [] #dados divididos
     col_vals = data[column].unique() #Este método de geração de árvore só funciona com valores discretos
     for col_val in col_vals:
-        split_data.append(dataset[dataset[column] == col_val])
-    return(split_data)
+        subconjunto.append(dataset[dataset[column] == col_val])
+    return(subconjunto)
 
-def find_best_split(dataset):
+def encontrar_melhor_subconjunto(dataset):
     best_gain = 0
     best_feature = 0
     features = list(dataset.columns)
     features.remove('class')
     for feature in features:
-        split_data = split(dataset, feature)
-        split_labels = [dataframe['class'] for dataframe in split_data]
+        subconjunto = criar_subconjunto(dataset, feature)
+        split_labels = [dataframe['class'] for dataframe in subconjunto]
         gain = information_gain(dataset['class'], split_labels)
         if gain > best_gain:
             best_gain, best_feature = gain, feature
     print(best_feature, best_gain)
     return best_feature, best_gain
 
-new_data = split(data, find_best_split(data)[0]) #contém uma lista de dataframes após a divisão
+# FOLDERS
+def KFolders():
+    kf = KFold(n_splits=10, shuffle=False) # set a divisão em 10 folds
+    kf.get_n_splits(X) # retorna o número de iterações divididas na validação cruzada
+    return (kf)
 
 # CRIAR UMA CHAMADA RECURSIVA PARA CADA SUBCONJUNTO
+if __name__=="__main__":
+    data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/balanceados/drebin_215_permissions.csv')
+    X = data.iloc[:,:-1] # train
+    y = data.iloc[:,-1] # test
+    #print(data.head())
+    #print(data.isnull().sum()) #selecionar 0s
+
+    #visualizar quantidade de dados
+    print("Há {} features no dataset".format(len(data.columns)))
+
+    for train_index, test_index in KFolders().split(data):
+        X_train, X_test = data.loc[train_index,:], data.loc[test_index,:]
+        new_data = criar_subconjunto(X_train, encontrar_melhor_subconjunto(X_train)[0]) #contém uma lista de dataframes após a divisão

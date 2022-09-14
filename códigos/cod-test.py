@@ -1,9 +1,22 @@
-# INFORMATION GAIN
-import numpy as np
-import pandas as pd
+import numpy as np 
+import pandas as pd 
+from sklearn.feature_selection import VarianceThreshold
 import math
 from collections import Counter
 from sklearn.model_selection import KFold
+
+def mostrar_caracteristicas_constantes(X_train):
+    sel = VarianceThreshold(threshold=0)
+    sel.fit(X_train)  # fit finds the features with zero variance
+
+    print("QUANTIDADE DE CARACTERÍSTICAS CONSTANTES  ",
+    len([
+        x for x in X_train.columns
+        if x not in X_train.columns[sel.get_support()]
+    ]))
+
+    print("CARACTERÍSTICAS CONSTANTES  ",[x for x in X_train.columns if x not in X_train.columns[sel.get_support()]])
+
 
 #Função para cálculo da Entropia
 def entropia(labels):
@@ -42,24 +55,29 @@ def criar_subconjunto(dataset, column):
         subconjunto.append(dataset[dataset[column] == col_val])
     return(subconjunto)
 
-
-
 # FOLDERS
 def KFolders():
     kf = KFold(n_splits=10, shuffle=False) # set a divisão em 10 folds
     kf.get_n_splits(data) # retorna o número de iterações divididas na validação cruzada
     return (kf)
 
+def information_gain(starting_labels, split_labels):
+    info_gain = entropia(starting_labels)
+    for branched_subset in split_labels:
+        info_gain -= len(branched_subset) * entropia(branched_subset) / len(starting_labels)
+    return info_gain
+
 if __name__=="__main__":
-    data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/drebin215.csv')
+    data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/krono.csv')
+    #visualizar quantidade de dados - def
     #print(data.head())
     #print(data.isnull().sum()) #selecionar 0s
+    print("HÁ {} FEATURES NO CONJUNTO DE DADOS".format(len(data.columns)))
 
-    #visualizar quantidade de dados
-    print("Há {} features no conjunto de dados".format(len(data.columns)))
+    X_train = data.iloc[:,:-1]
+    #X_test = data.iloc[:,-1] 
+   
+    #A PARTIR DESSE PONTO, OCORREU A REMOÇÃO DE RECURSOS CONSTANTES
+    mostrar_caracteristicas_constantes(X_train)
 
-    for train_index, test_index in KFolders().split(data):
-        X_train, X_test = data.loc[train_index,:], data.loc[test_index,:]
-        new_data = criar_subconjunto(X_train, encontrar_melhor_subconjunto(X_train)[0]) #contém uma lista de dataframes após a divisão
-            
-    #CONFERIR SE OS DADOS DE SAIDA ESTÃO CORRETOS
+    #encontrar_melhor_subconjunto(X_train)

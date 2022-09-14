@@ -18,7 +18,7 @@ def mostrar_caracteristicas_constantes(X_train):
     print("CARACTERÍSTICAS CONSTANTES  ",[x for x in X_train.columns if x not in X_train.columns[sel.get_support()]])
 
 
-#Função para cálculo da Entropia
+##Função para cálculo da Entropia
 def entropia(labels):
     entropy=0
     label_counts = Counter(labels)      # Um Counter é um dict e pode receber um objeto iterável ou um mapa como argumento para realizar a contagem de seus elementos

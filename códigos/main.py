@@ -5,7 +5,7 @@ import math
 from collections import Counter
 from sklearn.model_selection import KFold
 
-#Função para cálculo da Entropia
+##Função para cálculo da Entropia
 def entropia(labels):
     entropy=0
     label_counts = Counter(labels)      # Um Counter é um dict e pode receber um objeto iterável ou um mapa como argumento para realizar a contagem de seus elementos

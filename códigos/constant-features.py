@@ -16,7 +16,7 @@ X_test = data.iloc[:,-1]
 sel = VarianceThreshold(threshold=0)
 sel.fit(X_train)  # fit finds the features with zero variance
 
-# print the constant features
+## print the constant features
 print(
     len([
         x for x in X_train.columns

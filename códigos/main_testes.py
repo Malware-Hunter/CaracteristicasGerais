@@ -1,13 +1,23 @@
 import numpy as np 
 import pandas as pd
 from fast_ml.feature_selection import get_constant_features
-from sklearn.feature_selection import mutual_info_classif
+import math
+from scipy.stats import entropy
+from collections import Counter
 
 data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/drebin215.csv')
-#X = data.iloc[:,:-1]
-#y = data.iloc[:,-1]
 
-# Primeira etapa - Non_Frequent_Reduction
+#Benignos e Malignos
+B = data[(data['class'] == 0)]
+M = data[(data['class'] == 1)]
+
+total_of_benign = len(B)
+total_of_malware = len(M)
+
+# Lista de caracteristicas
+features_list = data.columns
+
+#### Primeira etapa - Non_Frequent_Reduction
 def NFR(df):
     constant_features = get_constant_features(df)
     print(constant_features)
@@ -21,18 +31,7 @@ def NFR(df):
             df.drop(columns = [a], inplace=True)
     return df
 
-# Segunda Etapa - Feature Discrimination
-
-#Benignos e Malignos
-B = data[(data['class'] == 0)]
-M = data[(data['class'] == 1)]
-
-total_of_benign = len(B)
-total_of_malware = len(M)
-
-# Lista de caracteristicas
-features_list = data.columns
-
+##### Segunda Etapa - Feature Discrimination
 # fib representa a frequência do recurso fi em arquivos benignos
 def fib(feature):
    return len(B[B[feature]==1])/len(B)
@@ -50,16 +49,38 @@ def Score(feature):
   fm = fim(feature)
   return 1.0 - (min(fb,fm)/max(fb,fm))
 
-# Terceira Etapa - Information Gain
-def calculateMutualInformationGain(features, data):
-    feature_names = features.columns
-    mutualInformationGain = mutual_info_classif(features, data, random_state = 0)
-    data = {"features": feature_names, "score": mutualInformationGain}
-    df = pd.DataFrame(data)
-    df = df.sort_values(by=['score'], ascending=False)
-    return df
+#### Terceira Etapa - Information Gain
+def _Ex_a_v_(Ex, a, v, nan=True):
+    if nan:
+        return [x for x, t in zip(Ex, a) if (isinstance(t, float) and
+                                             isinstance(v, float) and
+                                             math.isnan(t)        and
+                                             math.isnan(v))       or
+                                             (t == v)]
+    else:
+        return [x for x, t in zip(Ex, a) if t == v]
 
+def info_gain(Ex, a, nan=True):
+    H_Ex = entropy(list(Counter(Ex).values()))
+    sum_v = 0
+    for v in set(a):
+        Ex_a_v = _Ex_a_v_(Ex, a, v, nan)
+        sum_v += (len(Ex_a_v) / len(Ex)) *\
+(entropy(list(Counter(Ex_a_v).values())))
+    result = H_Ex - sum_v
+    return result
 
 if __name__=="__main__":
-    for feature in features_list:
-        print("Feature:", feature, "Score:", Score(feature))
+  print("Features Discrimination")
+  for feature in features_list:
+      print("Feature:", feature, "Score:", Score(feature))
+  
+  print("IG")
+  ig_df = pd.DataFrame(columns=["feature", "ig"])
+  for i in data.columns:
+      if i != "class":
+          ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["feature", "ig"])])
+  print(ig_df.sort_values(by="ig", ascending=False).head(10))
+
+
+  

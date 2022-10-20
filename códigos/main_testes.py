@@ -1,11 +1,9 @@
-import numpy as np 
 import pandas as pd
-from fast_ml.feature_selection import get_constant_features
 import math
 from scipy.stats import entropy
 from collections import Counter
 
-data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/drebin215.csv')
+data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/KronoDroid_Emulador_Permission_SystemCalls_LIMPO.csv')
 
 #Benignos e Malignos
 B = data[(data['class'] == 0)]
@@ -30,14 +28,20 @@ def fib(feature):
 def fim(feature):
    return len(M[M[feature]==1])/len(M)
 
-for i in range(1, len(features_list)):
-  Score_feature = 1 - (min(fib(features_list[i]), fim(features_list[i]))/(max(fib(features_list[i]), fim(features_list[i]))))
-  print("Feature: ", features_list[i], "   Score: ", Score_feature)
+#for i in range(1, len(features_list)):
+#  Score_feature = 1 - (min(fib(features_list[i]), fim(features_list[i]))/(max(fib(features_list[i]), fim(features_list[i]))))
+#  print("Feature: ", features_list[i], "   Score: ", Score_feature)
 
 def Score(feature):
   fb = fib(feature)
   fm = fim(feature)
-  return 1.0 - (min(fb,fm)/max(fb,fm))
+  """
+  Score(fi) = 0 {frequência igual de ocorrência em ambas as classes; sem discriminação}
+  Score(fi) ~ 0 {baixa frequência de ocorrência em qualquer uma das classes; pior característica discriminante}
+  Score(fi) ~ 1 {alta frequência de ocorrência em qualquer uma das classes; melhor característica discriminativa}
+  """
+  score = 1.0 - (min(fb,fm)/max(fb,fm))
+  return score
 
 #### Terceira Etapa - Information Gain
 def _Ex_a_v_(Ex, a, v, nan=True):
@@ -61,24 +65,27 @@ def info_gain(Ex, a, nan=True):
     return result
 
 if __name__=="__main__":
-    print("Non-Frequent Reduction")
-    permission = data.columns
-    for i in permission:
-        #print(i, "Frequencia ", get_percentage(i))
-        aux = NFR(i)
-        if aux >= 0.8:
-            print(i, "Frequencia ", NFR(i))
-
-    print("Features Discrimination")
-    for feature in features_list:
-        print("Feature:", feature, "Score:", Score(feature))
-
-    print("IG")
-    ig_df = pd.DataFrame(columns=["feature", "ig"])
-    for i in data.columns:
-        if i != "class":
-            ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["feature", "ig"])])
-    print(ig_df.sort_values(by="ig", ascending=False).head(10))
-
-
   
+  NFR_list = []
+  
+  print("Non-Frequent Reduction")
+  permission = data.columns
+  for i in permission:
+      aux = NFR(i)
+      if aux >= 0.8:
+        print(i, "Frequencia ", NFR(i))
+        NFR_list.append(i)
+  
+  
+  print("\nFeature Discrimination")
+  #print(NFR_list)
+  for feature in NFR_list:
+    print("Feature:", feature, "Score:", Score(feature))
+  
+  
+  print("\nInformation Gain")
+  ig_df = pd.DataFrame(columns=["Feature", "IG"])
+  for i in NFR_list:
+      if i != "class":
+          ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["Feature", "IG"])])
+  print(ig_df)

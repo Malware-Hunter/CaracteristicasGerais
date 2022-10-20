@@ -18,18 +18,8 @@ total_of_malware = len(M)
 features_list = data.columns
 
 #### Primeira etapa - Non_Frequent_Reduction
-def NFR(df):
-    constant_features = get_constant_features(df)
-    print(constant_features)
-
-    # Remove do dataset as caracteristicas que não estão na lista de constantes
-    constant_features_list = constant_features.query("Desc=='Constant'")['Var'].to_list()
-    #print(constant_features_list)
-    for x in range(0, len(constant_features_list)):
-        a = constant_features_list[x] 
-        if x not in df:    
-            df.drop(columns = [a], inplace=True)
-    return df
+def NFR(permission):
+    return len(data[data[permission]==1])/len(data)
 
 ##### Segunda Etapa - Feature Discrimination
 # fib representa a frequência do recurso fi em arquivos benignos
@@ -71,16 +61,24 @@ def info_gain(Ex, a, nan=True):
     return result
 
 if __name__=="__main__":
-  print("Features Discrimination")
-  for feature in features_list:
-      print("Feature:", feature, "Score:", Score(feature))
-  
-  print("IG")
-  ig_df = pd.DataFrame(columns=["feature", "ig"])
-  for i in data.columns:
-      if i != "class":
-          ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["feature", "ig"])])
-  print(ig_df.sort_values(by="ig", ascending=False).head(10))
+    print("Non-Frequent Reduction")
+    permission = data.columns
+    for i in permission:
+        #print(i, "Frequencia ", get_percentage(i))
+        aux = NFR(i)
+        if aux >= 0.8:
+            print(i, "Frequencia ", NFR(i))
+
+    print("Features Discrimination")
+    for feature in features_list:
+        print("Feature:", feature, "Score:", Score(feature))
+
+    print("IG")
+    ig_df = pd.DataFrame(columns=["feature", "ig"])
+    for i in data.columns:
+        if i != "class":
+            ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["feature", "ig"])])
+    print(ig_df.sort_values(by="ig", ascending=False).head(10))
 
 
   

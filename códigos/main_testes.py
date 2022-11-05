@@ -1,19 +1,7 @@
-import pandas as pd
+import pandas as pd 
+import numpy as np 
 import math
-from scipy.stats import entropy
 from collections import Counter
-
-data = pd.read_csv('C:/Users/SVO-AVELL/CaracteristicasGerais/datasets/KronoDroid_Emulador_Permission_SystemCalls_LIMPO.csv')
-
-#Benignos e Malignos
-B = data[(data['class'] == 0)]
-M = data[(data['class'] == 1)]
-
-total_of_benign = len(B)
-total_of_malware = len(M)
-
-# Lista de caracteristicas
-features_list = data.columns
 
 #### Primeira etapa - Non_Frequent_Reduction
 def NFR(permission):
@@ -28,10 +16,6 @@ def fib(feature):
 def fim(feature):
    return len(M[M[feature]==1])/len(M)
 
-#for i in range(1, len(features_list)):
-#  Score_feature = 1 - (min(fib(features_list[i]), fim(features_list[i]))/(max(fib(features_list[i]), fim(features_list[i]))))
-#  print("Feature: ", features_list[i], "   Score: ", Score_feature)
-
 def Score(feature):
   fb = fib(feature)
   fm = fim(feature)
@@ -43,49 +27,53 @@ def Score(feature):
   score = 1.0 - (min(fb,fm)/max(fb,fm))
   return score
 
-#### Terceira Etapa - Information Gain
-def _Ex_a_v_(Ex, a, v, nan=True):
-    if nan:
-        return [x for x, t in zip(Ex, a) if (isinstance(t, float) and
-                                             isinstance(v, float) and
-                                             math.isnan(t)        and
-                                             math.isnan(v))       or
-                                             (t == v)]
-    else:
-        return [x for x, t in zip(Ex, a) if t == v]
+def entropy(labels):
+    entropy=0
+    label_counts = Counter(labels)
+    for label in label_counts:
+        prob_of_label = label_counts[label] / len(labels)
+        entropy -= prob_of_label * math.log2(prob_of_label)
+    return entropy
 
-def info_gain(Ex, a, nan=True):
-    H_Ex = entropy(list(Counter(Ex).values()))
-    sum_v = 0
-    for v in set(a):
-        Ex_a_v = _Ex_a_v_(Ex, a, v, nan)
-        sum_v += (len(Ex_a_v) / len(Ex)) *\
-(entropy(list(Counter(Ex_a_v).values())))
-    result = H_Ex - sum_v
-    return result
-
+#### Terceira etapa - Non_Frequent_Reduction
+def information_gain(starting_labels, split_labels):
+    info_gain = entropy(starting_labels)
+    for branched_subset in split_labels:
+        info_gain -= len(branched_subset) * entropy(branched_subset) / len(starting_labels)
+    return info_gain
+	
 if __name__=="__main__":
-  
-  NFR_list = []
-  
-  print("Non-Frequent Reduction")
-  permission = data.columns
-  for i in permission:
-      aux = NFR(i)
-      if aux >= 0.8:
-        print(i, "Frequencia ", NFR(i))
-        NFR_list.append(i)
-  
-  
-  print("\nFeature Discrimination")
-  #print(NFR_list)
-  for feature in NFR_list:
-    print("Feature:", feature, "Score:", Score(feature))
-  
-  
-  print("\nInformation Gain")
-  ig_df = pd.DataFrame(columns=["Feature", "IG"])
-  for i in NFR_list:
-      if i != "class":
-          ig_df = pd.concat([ig_df, pd.DataFrame([[i, info_gain(i,data)]], columns=["Feature", "IG"])])
-  print(ig_df)
+	
+	data = pd.read_csv(r'C:\Users\SVO-AVELL\CaracteristicasGerais\datasets\KronoDroid_Emulador_Permission_SystemCalls_LIMPO.csv')
+	X = data.iloc[:,:-1]
+	Y = data.iloc[:,-1]
+	NFR_list = []
+
+	#Benignos e Malignos
+	B = data[(data['class'] == 0)]
+	M = data[(data['class'] == 1)]
+
+	total_of_benign = len(B)
+	total_of_malware = len(M)
+
+	# Lista de caracteristicas
+	features_list = data.columns
+
+	print("Non-Frequent Reduction")
+	permission = data.columns
+	for i in permission:
+		aux = NFR(i)
+		if aux >= 0.8:
+			print(i, "Frequencia ", NFR(i))
+			NFR_list.append(i)
+
+	print("\nFeature Discrimination")
+	#print(NFR_list)
+	for feature in NFR_list:
+		print(feature, "Score:", Score(feature))
+
+	print("\nInformation Gain")
+	for i in NFR_list:
+		if i != "class":
+			new_data = information_gain(X,i)
+			print(i, new_data)

@@ -3,6 +3,20 @@ import numpy as np
 import math
 from collections import Counter
 
+def gmf(permissions):
+	count = {}
+	for p in permissions:
+		if p in count:
+			count[p] +=1
+		else:
+			count[p] = 1
+	sorted_count = sorted(count.items(), key=operator.itemgetter(1), reverse=True)
+	return sorted_count
+
+def get80(sorted_count):
+	eighty_percet = int(len(sorted_count)*0.8)
+	return sorted_count[:eigthy_percent]
+
 #### Primeira etapa - Non_Frequent_Reduction
 def NFR(permission):
     return len(data[data[permission]==1])/len(data)

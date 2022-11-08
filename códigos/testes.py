@@ -20,7 +20,6 @@ def Get80PercentPermissions(contagem_em_ordem):
 	return contagem_em_ordem[:oitenta_porcento]
 # FIM TESTE
 
-
 #### Primeira etapa - Non_Frequent_Reduction
 def NFR(permission):
     return len(data[data[permission]==1])/len(data)
@@ -76,7 +75,7 @@ if __name__=="__main__":
 	# Lista de nomes das caracteristicas
 	features_list = data.columns
 
-	print("Non-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
+	print("\nNon-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
 	permission = data.columns
 	for i in permission:
 		aux = NFR(i)
@@ -94,5 +93,5 @@ if __name__=="__main__":
 		if i != "class":
 			new_data = information_gain(X,i)
 			print(i, new_data)
-	
+	print("\nCARACTERISTIAS, VALOR MAXIMO")
 	print(Get80PercentPermissions(GetPermissions(NFR_list)))

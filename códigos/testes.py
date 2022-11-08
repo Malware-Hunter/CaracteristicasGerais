@@ -2,26 +2,9 @@ import pandas as pd
 import numpy as np 
 import math
 from collections import Counter
-import operator
-
-# TESTE COM O CORTE A PARTIR DA CARACTERISTICA MAIS FREQUENTE 
-def GetPermissions(permissions):
-	count = {}
-	for p in permissions:
-		if p in count:
-			count[p] +=1
-		else:
-			count[p] = 1
-	contagem_em_ordem = sorted(count.items(), key=operator.itemgetter(1), reverse=True)
-	return contagem_em_ordem
-
-def Get80PercentPermissions(contagem_em_ordem):
-	oitenta_porcento = int(len(contagem_em_ordem)*0.8)
-	return contagem_em_ordem[:oitenta_porcento]
-# FIM TESTE
 
 #### Primeira etapa - Non_Frequent_Reduction
-def NFR(permission):
+def Non_Frequent_Reduction(permission):
     return len(data[data[permission]==1])/len(data)
 
 ##### Segunda Etapa - Feature Discrimination
@@ -58,40 +41,41 @@ def information_gain(data, split_labels):
     for branched_subset in split_labels:
         info_gain -= len(branched_subset) * entropy(branched_subset) / len(data)
     return info_gain
-	
-if __name__=="__main__":	
-	data = pd.read_csv(r'datasets\KronoDroid_Emulador_Permission_SystemCalls_LIMPO.csv')
-	X = data.iloc[:,:-1]
-	Y = data.iloc[:,-1]
-	NFR_list = []
 
-	#Benignos e Malignos
-	B = data[(data['class'] == 0)]
-	M = data[(data['class'] == 1)]
+if __name__=="__main__":
+    data = pd.read_csv(r'datasets\drebin215.csv')
+    X = data.iloc[:,:-1]
+    Y = data.iloc[:,-1]
+    NFR_list = []
 
-	total_of_benign = len(B)
-	total_of_malware = len(M)
+    #Benignos e Malignos
+    B = data[(data['class'] == 0)]
+    M = data[(data['class'] == 1)]
 
-	# Lista de nomes das caracteristicas
-	features_list = data.columns
+    total_of_benign = len(B)
+    total_of_malware = len(M)
 
-	print("\nNon-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
-	permission = data.columns
-	for i in permission:
-		aux = NFR(i)
-		if aux >= 0.8:
-			print(i, NFR(i))
-			NFR_list.append(i)
+    ft_sum = X.sum()
+    ft_max = ft_sum.max()
+    th = ft_max * 0.8
+    select_ft = list()
 
-	print("\nFeature Discrimination --> SCORE")
-	#print(NFR_list)
-	for feature in NFR_list:
-		print(feature, Score(feature))
+    for index, value in ft_sum.items():
+        if value >= th:
+            select_ft.append(index)
+    print(select_ft)
 
-	print("\nInformation Gain")
-	for i in NFR_list:
-		if i != "class":
-			new_data = information_gain(X,i)
-			print(i, new_data)
-	print("\nCARACTERISTIAS, VALOR MAXIMO")
-	print(Get80PercentPermissions(GetPermissions(NFR_list)))
+    print("\nNon-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
+    for i in select_ft:
+        aux = Non_Frequent_Reduction(i)
+        print(i, Non_Frequent_Reduction(i))
+
+    print("\nFeature Discrimination --> SCORE")
+    for feature in select_ft:
+        print(feature, Score(feature))
+
+    print("\nInformation Gain")
+    for i in select_ft:
+        if i != "class":
+            new_data = information_gain(X,i)
+            print(i, new_data)

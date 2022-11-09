@@ -1,7 +1,14 @@
-import pandas as pd 
-import numpy as np 
+import pandas as pd
 import math
 from collections import Counter
+from argparse import ArgumentParser
+from utils import get_base_parser, get_dataset, get_X_y
+import sys
+
+def parse_args(argv):
+    parser = ArgumentParser(parents=[get_base_parser()])
+    args = parser.parse_args(argv)
+    return args
 
 #### Primeira etapa - Non_Frequent_Reduction
 def Non_Frequent_Reduction(permission):
@@ -43,12 +50,11 @@ def information_gain(data, split_labels):
     return info_gain
 
 if __name__=="__main__":
-    data = pd.read_csv(r'datasets\drebin215.csv')
-    X = data.iloc[:,:-1]
-    Y = data.iloc[:,-1]
-    NFR_list = []
 
-    #Benignos e Malignos
+    args = parse_args(sys.argv[1:])
+    data = get_dataset(args)
+    X, y = get_X_y(args, get_dataset(args))
+
     B = data[(data['class'] == 0)]
     M = data[(data['class'] == 1)]
 
@@ -63,7 +69,7 @@ if __name__=="__main__":
     for index, value in ft_sum.items():
         if value >= th:
             select_ft.append(index)
-    print(select_ft)
+    #print(select_ft)
 
     print("\nNon-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
     for i in select_ft:

@@ -1,6 +1,6 @@
 # Recriação e adaptação do experimento: A multi-tiered feature selection model for android malware detection based on Feature discrimination and Information Gain
-_main.py_ recria o experimento fazendo adapatações em relação ao experimento origianal.
-## As adaptações foram adicionadas na primeita etapa do pré-processamento do sonjunto de dados:
+_main.py_ recria o experimento fazendo adapatações em relação ao experimento original.
+## As adaptações foram adicionadas na primeita etapa do pré-processamento do conjunto de dados:
 # Adaptações
 - Remoção de características comuns: INTERNET e ACCESS_NETWORK_STATE
 - Filtragem das características a partir da característica mais frequente

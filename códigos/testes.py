@@ -76,9 +76,10 @@ if __name__=="__main__":
         X = drop_irrelevant_columns(X)
     
     ## corte a partir da característica mais frequente
+    print(data.shape)
     ft_sum = X.sum()
     ft_max = ft_sum.max()
-    th = ft_max * 0.8
+    th = ft_max * 0.05
     select_ft = list()
     for index, value in ft_sum.items():
         if value >= th:
@@ -86,7 +87,7 @@ if __name__=="__main__":
     #print(select_ft)
 
     ## início do pré-processamento
-    print("\nNon-Frequent Reduction --> FREQUÊNCIA DE UMA CARACTERÍSTICA")
+    print("\nNon-Frequent Reduction --> FREQUÊNCIA DE CADA CARACTERÍSTICA")
     for i in select_ft:
         aux = Non_Frequent_Reduction(i)
         print(i, Non_Frequent_Reduction(i))
@@ -96,7 +97,10 @@ if __name__=="__main__":
         print(feature, Score(feature))
 
     print("\nInformation Gain")
+    select_ft_count = 0
     for i in select_ft:
         if i != "class":
             new_data = information_gain(X,i)
             print(i, new_data)
+            select_ft_count+=1
+    print("QUANTIDADE DE FEATURES SELECIONADAS --> ",select_ft_count)

@@ -47,18 +47,6 @@ def information_gain(data, split_labels):
         info_gain -= len(branched_subset) * entropy(branched_subset) / len(data)
     return info_gain
 
-def get_unique_values(df):
-    for column_name in df.columns:
-        yield (column_name, df[column_name].unique())
-
-def drop_irrelevant_columns(df):
-    # retorna o df sem colunas irrelevantes (colunas com menos de 2 valores possíveis)
-    irrelevant_columns = []
-    for (column_name, unique_values) in get_unique_values(df):
-        if(len(unique_values) < 2):
-            irrelevant_columns.append(column_name)
-    return df.drop(columns=irrelevant_columns)
-
 if __name__=="__main__":
     args = parse_args(sys.argv[1:])
     data = get_dataset(args)
@@ -67,40 +55,23 @@ if __name__=="__main__":
     M = data[(data['class'] == 1)]
     total_of_benign = len(B)
     total_of_malware = len(M)
-
-    for i in X.columns:
-        if i == 'INTERNET':
-            X = X.drop(columns=['INTERNET'])
-        if i == 'ACCESS_NETWORK_STATE':
-            X = X.drop(columns=['ACCESS_NETWORK_STATE'])
-        X = drop_irrelevant_columns(X)
-    
-    ## corte a partir da característica mais frequente
-    print(data.shape)
-    ft_sum = X.sum()
-    ft_max = ft_sum.max()
-    th = ft_max * 0.05
     select_ft = list()
-    for index, value in ft_sum.items():
-        if value >= th:
-            select_ft.append(index)
-    #print(select_ft)
-
     ## início do pré-processamento
-    print("\nNon-Frequent Reduction --> FREQUÊNCIA DE CADA CARACTERÍSTICA")
-    for i in select_ft:
-        aux = Non_Frequent_Reduction(i)
-        print(i, Non_Frequent_Reduction(i))
 
-    print("\nFeature Discrimination --> SCORE")
+    for i in data.columns:
+        aux = Non_Frequent_Reduction(i)
+        if aux >= 0.8:
+            print(i, Non_Frequent_Reduction(i))
+            select_ft.append(i)
+
     for feature in select_ft:
         print(feature, Score(feature))
 
     print("\nInformation Gain")
-    select_ft_count = 0
+    select_ft_count = 0 
     for i in select_ft:
         if i != "class":
             new_data = information_gain(X,i)
             print(i, new_data)
-            select_ft_count+=1
+            select_ft_count+=1 
     print("QUANTIDADE DE FEATURES SELECIONADAS --> ",select_ft_count)

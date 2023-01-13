@@ -1,8 +1,11 @@
 import math
 import sys
+import pandas as pd
 from collections import Counter
 from argparse import ArgumentParser
 from utils import get_base_parser, get_dataset, get_X_y
+from RF import RF
+from SVM import SVM
 
 def parse_args(argv):
     parser = ArgumentParser(parents=[get_base_parser()])
@@ -59,6 +62,16 @@ def drop_irrelevant_columns(df):
             irrelevant_columns.append(column_name)
     return df.drop(columns=irrelevant_columns)
 
+def NewDataset(select_ft):
+    l = []
+    for i in data.columns:
+        if i not in select_ft:
+            l.append(i)
+    new_X = data.drop(columns=l)
+    #print(new_X)
+    df2 = pd.DataFrame(new_X)
+    return df2
+
 if __name__=="__main__":
     args = parse_args(sys.argv[1:])
     data = get_dataset(args)
@@ -68,18 +81,19 @@ if __name__=="__main__":
     total_of_benign = len(B)
     total_of_malware = len(M)
 
+    # exclusão de permissões comuns
     for i in X.columns:
         if i == 'INTERNET':
             X = X.drop(columns=['INTERNET'])
         if i == 'ACCESS_NETWORK_STATE':
             X = X.drop(columns=['ACCESS_NETWORK_STATE'])
         X = drop_irrelevant_columns(X)
-    
+
     ## corte a partir da característica mais frequente
     print(data.shape)
     ft_sum = X.sum()
     ft_max = ft_sum.max()
-    th = ft_max * 0.05
+    th = ft_max * 0.80
     select_ft = list()
     for index, value in ft_sum.items():
         if value >= th:
@@ -103,4 +117,12 @@ if __name__=="__main__":
             new_data = information_gain(X,i)
             print(i, new_data)
             select_ft_count+=1
+
     print("QUANTIDADE DE FEATURES SELECIONADAS --> ",select_ft_count)
+    NewDataset(select_ft).to_csv(args.output_file, index=False)
+    d1 = pd.read_csv(r'C:\Users\SVO-AVELL\OneDrive\Documentos\DocsSavio\CaracteristicasGerais\Adaptações\códigos\results.csv')
+    print("\nRandom Forest Classifier")
+    print(RF(d1, data))
+    print("\nSVM")
+    print(SVM(d1, data))
+    

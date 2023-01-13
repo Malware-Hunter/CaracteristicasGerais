@@ -11,7 +11,7 @@ _MTmain_ad.py_ recria o experimento fazendo adapatações em relação ao experi
 ## Como instalar
 ```
 ## 1) Clone o respositório:
-git clone (https://github.com/Malware-Hunter/CaracteristicasGerais.git)
+git clone https://github.com/Malware-Hunter/CaracteristicasGerais.git
 
 ```
 

@@ -68,9 +68,10 @@ def NewDataset(select_ft):
         if i not in select_ft:
             l.append(i)
     new_X = data.drop(columns=l)
-    #print(new_X)
+    new_X['class'] = data['class']  # Adicionar a coluna 'class' ao novo dataset
     df2 = pd.DataFrame(new_X)
     return df2
+
 
 if __name__=="__main__":
     args = parse_args(sys.argv[1:])
@@ -93,7 +94,7 @@ if __name__=="__main__":
     print(data.shape)
     ft_sum = X.sum()
     ft_max = ft_sum.max()
-    th = ft_max * 0.80
+    th = ft_max * 0.10
     select_ft = list()
     for index, value in ft_sum.items():
         if value >= th:
@@ -120,7 +121,7 @@ if __name__=="__main__":
 
     print("QUANTIDADE DE FEATURES SELECIONADAS --> ",select_ft_count)
     NewDataset(select_ft).to_csv(args.output_file, index=False)
-    d1 = pd.read_csv(r'C:\Users\SVO-AVELL\OneDrive\Documentos\DocsSavio\CaracteristicasGerais\Adaptações\códigos\results.csv')
+    d1 = pd.read_csv('results.csv')
     print("\nRandom Forest Classifier")
     print(RF(d1, data))
     print("\nSVM")
